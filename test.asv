@@ -1,0 +1,24 @@
+function test()
+%TEST Summary of this function goes here
+%   Detailed explanation goes here
+I = imread("../data/cv_cover.jpg");
+[~, ~, numberOfColorChannels] = size(I);
+if numberOfColorChannels > 1
+    I = rgb2gray(I);
+end
+%% Compute the features and descriptors
+corners = detectFASTFeatures(I);
+[features,validPoints] = computeBrief(I,corners.Location); % 10
+J = imrotate(I,1*10);
+corners1 = detectFASTFeatures(J);
+[features1,validPoints1] = computeBrief(J,corners1.Location); % 10
+indexPairs = matchFeatures(features,features1, 'MatchThreshold', 6, "MaxRatio",0.7);
+pin = validPoints(indexPairs(:, 1), :);
+pout = validPoints1(indexPairs(:, 2), :);
+v = computeH(pin, pout);
+estimated_pin = homography_transform(pout', v);
+disp([pin, estimated_pin']);
+end
+
+zero_mean_points = validPoints(indexPairs(:, 1), :) - mean(validPoints(indexPairs(:, 1), :), 1)
+zero_mean_points  sqrt(2) / mean(sqrt(sum(zero_mean_points  .* zero_mean_points , 2)))

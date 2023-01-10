@@ -1,0 +1,27 @@
+function y = homography_transform(x, v)
+%   x should be a 2xN matrix
+%   V, represented as a 3x3 homogeneous matrix.
+
+I = imread("../data/cv_cover.jpg");
+[~, ~, numberOfColorChannels] = size(I);
+if numberOfColorChannels > 1
+    I = rgb2gray(I);
+end
+%% Compute the features and descriptors
+corners = detectFASTFeatures(I);
+[features,validPoints] = computeBrief(I,corners.Location); % 10
+J = imrotate(I,1*10);
+corners1 = detectFASTFeatures(J);
+[features1,validPoints1] = computeBrief(J,corners1.Location); % 10
+indexPairs = matchFeatures(features,features1, 'MatchThreshold', 6, "MaxRatio",0.7);
+pin = validPoints(indexPairs(:, 1), :);
+pout = validPoints1(indexPairs(:, 2), :);
+
+
+
+
+
+q = v * [x; ones(1, size(x,2))];
+p = q(3, :);
+y = [q(1,:)./p; q(2,:)./p];
+end

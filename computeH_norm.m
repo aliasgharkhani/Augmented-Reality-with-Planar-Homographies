@@ -1,0 +1,29 @@
+function [H2to1] = computeH_norm(x1, x2)
+% x1 and x2 should be a marix of shape Nx2
+x1 = x1';
+x2 = x2';
+%% Compute centroids of the points
+centroid1 = mean(x1, 2);
+centroid2 = mean(x2, 2);
+
+%% Shift the origin of the points to the centroid
+t1 = [1, 0, -centroid1(1);0, 1, -centroid1(2); 0, 0, 1];
+zero_mean_x1 = t1 * [x1; ones(1, size(x1, 2))];
+t2 = [1, 0, -centroid2(1);0, 1, -centroid2(2); 0, 0, 1];
+zero_mean_x2 = t2 * [x2; ones(1, size(x2, 2))];
+%% Normalize the points so that the average distance from the origin is equal to sqrt(2).
+scale1 = sqrt(2) / mean(sqrt(sum(x1 .* x1, 1)));
+s1 = [scale1, 0, 0;0, scale1, 0;0, 0, 1];
+normalized_x1 = s1 * zero_mean_x1;
+scale2 = sqrt(2) / mean(sqrt(sum(x2 .* x2, 1)));
+s2 = [scale2, 0, 0;0, scale2, 0;0, 0, 1];
+normalized_x2 = s2 * zero_mean_x2;
+%% similarity transform 1
+T1 = s1*t1;
+
+%% similarity transform 2
+T2 = s2*t2;
+%% Compute Homography
+H = computeH(normalized_x1(1:2, :)', normalized_x2(1:2, :)');
+%% Denormalization
+H2to1 = T1\H*T2;
